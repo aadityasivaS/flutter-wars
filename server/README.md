@@ -60,6 +60,69 @@ for each environment. `GOOGLE_OAUTH_CLIENT_ID` must be set in production so
 Google ID tokens are verified for this backend's client ID. Run authentication
 and synchronization tests with `uv run pytest tests/test_authentication.py tests/test_ide_sync.py`.
 
+## OAuth and JWT setup
+
+### Google OAuth
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/).
+2. Create or select the workshop project.
+3. Configure the OAuth consent screen and add the participant test accounts.
+4. Create an OAuth client ID for the client application. Use the client type
+   required by the Flutter app (typically Android, iOS, or Web).
+5. Copy the client ID into `.env`:
+
+   ```dotenv
+   GOOGLE_OAUTH_CLIENT_ID=your-client-id.apps.googleusercontent.com
+   ```
+
+6. Configure the client app with the matching package name, signing certificate,
+   bundle ID, or authorized JavaScript origin/redirect URI in Google Cloud.
+
+The client sends the Google ID token to `POST /auth/google`:
+
+```json
+{"credential":"<google-id-token>"}
+```
+
+The backend verifies the token, requires the Google subject to be registered in
+`user_identity`, requires an active `team_membership`, and returns a backend JWT.
+The backend does not accept the Google token directly on other API routes.
+
+### JWT configuration
+
+Generate a strong secret locally. Do not commit it or place it in client code:
+
+```powershell
+$bytes = New-Object byte[] 32
+[Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+$jwtSecret = [Convert]::ToBase64String($bytes)
+Write-Output $jwtSecret
+```
+
+Set the result in `.env`:
+
+```dotenv
+JWT_SECRET_KEY=<generated-secret>
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_MINUTES=60
+```
+
+The JWT is returned by `POST /auth/google` and is used for participant APIs:
+
+```http
+Authorization: Bearer <backend-jwt>
+```
+
+Use `GET /auth/me` to verify the current server-resolved user, team, and role.
+JWT authentication is separate from Module C's IDE credential:
+
+```http
+X-Team-API-Key: <team-api-key>
+```
+
+Do not use participant JWTs for `GET /ide/state`, and do not use team API keys
+for participant marketplace or account APIs.
+
 ## Structure
 
 - `app/core`: settings, database lifecycle, error mapping, logging hooks, principal boundary.
