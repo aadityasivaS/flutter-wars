@@ -62,6 +62,36 @@ def test_invalid_or_unregistered_google_identity_is_rejected(app, client):
     assert unregistered.json()["code"] == "ACCOUNT_NOT_ALLOWED"
 
 
+def test_server_side_oauth_callback_exchanges_code_and_issues_jwt(app, client):
+    user_id, team_id, subject = _seed_team_a()
+    app.state.google_code_exchange = lambda code: "verified-google-id-token"
+    app.state.google_token_verifier = lambda token: (
+        {"google_subject": subject, "email": "a@example.test"}
+        if token == "verified-google-id-token"
+        else None
+    )
+    state = "test-oauth-state"
+    client.cookies.set("google_oauth_state", state)
+    callback = client.get(f"/auth/google/callback?code=auth-code&state={state}")
+    assert callback.status_code == 200
+    assert callback.json()["token_type"] == "bearer"
+
+    me = client.get(
+        "/auth/me", headers={"Authorization": f"Bearer {callback.json()['access_token']}"}
+    )
+    assert me.status_code == 200
+    assert me.json()["user_id"] == str(user_id)
+    assert me.json()["team_id"] == str(team_id)
+
+
+def test_server_side_oauth_callback_rejects_state_mismatch(app, client):
+    SQLModel.metadata.create_all(get_engine())
+    client.cookies.set("google_oauth_state", "expected-state")
+    response = client.get("/auth/google/callback?code=auth-code&state=wrong-state")
+    assert response.status_code == 400
+    assert response.json()["code"] == "OAUTH_STATE_INVALID"
+
+
 def test_jwt_team_and_role_claims_cannot_override_database_membership(app, client):
     user_id, team_a_id, _ = _seed_team_a()
     with Session(get_engine()) as session:

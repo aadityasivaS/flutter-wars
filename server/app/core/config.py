@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     google_oauth_client_id: str | None = Field(
         default=None, validation_alias="GOOGLE_OAUTH_CLIENT_ID"
     )
+    google_oauth_client_secret: SecretStr | None = Field(
+        default=None, validation_alias="GOOGLE_OAUTH_CLIENT_SECRET"
+    )
+    google_oauth_redirect_uri: str = Field(
+        default="http://localhost:8000/auth/google/callback",
+        validation_alias="GOOGLE_OAUTH_REDIRECT_URI",
+    )
 
     @property
     def database_dsn(self) -> str:

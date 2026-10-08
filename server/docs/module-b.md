@@ -8,6 +8,12 @@ Module B owns `user_identity`, `team`, and `team_membership`, Google ID-token ve
 
 `POST /auth/google` accepts `{ "credential": "<Google ID token>" }`. It verifies the token, finds the registered Google subject and active team membership, then returns a bearer access token. Invalid credentials return `401 INVALID_GOOGLE_CREDENTIAL`; unregistered or inactive identities return `403 ACCOUNT_NOT_ALLOWED`.
 
+For server-initiated browser sign-in, `GET /auth/google/login` redirects to
+Google's authorization endpoint. Google returns to
+`GET /auth/google/callback?code=<code>&state=<state>`. The callback validates
+the HttpOnly state cookie, exchanges the code using the server-only OAuth client
+secret, verifies the returned ID token, and issues the same backend JWT.
+
 `GET /auth/me` requires `Authorization: Bearer <participant JWT>` and returns the current principal:
 
 ```json

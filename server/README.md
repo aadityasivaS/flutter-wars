@@ -93,6 +93,19 @@ The backend verifies the token, requires the Google subject to be registered in
 `user_identity`, requires an active `team_membership`, and returns a backend JWT.
 The backend does not accept the Google token directly on other API routes.
 
+For server-initiated sign-in, configure the Web OAuth client secret and redirect
+URI, then open:
+
+```text
+GET /auth/google/login
+```
+
+Google redirects back to `/auth/google/callback?code=<code>&state=<state>`. The
+server validates the state cookie, exchanges the code using the client secret,
+verifies the returned Google ID token, and returns the backend JWT. Register the
+exact redirect URI in Google Cloud and keep `GOOGLE_OAUTH_CLIENT_SECRET` only on
+the server.
+
 ### JWT configuration
 
 Generate a strong secret locally. Do not commit it or place it in client code:
