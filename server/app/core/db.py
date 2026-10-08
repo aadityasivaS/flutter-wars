@@ -5,6 +5,7 @@ from typing import Callable
 
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
+from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, create_engine
 
 from app.core.config import Settings, get_settings
@@ -16,12 +17,18 @@ _session_factory: Callable[[], Session] | None = None
 def build_engine(settings: Settings) -> Engine:
     """Create a SQLModel-compatible engine for local, Neon, or Hyperdrive URLs."""
     connect_args: dict[str, object] = {}
+    if settings.database_dsn == "sqlite://":
+        # The test client serves requests on another thread; preserve one
+        # in-memory database across those sessions.
+        connect_args["check_same_thread"] = False
     if not settings.database_dsn.startswith("sqlite"):
         connect_args["connect_timeout"] = settings.database_connect_timeout_seconds
     options: dict[str, object] = {"pool_pre_ping": True, "connect_args": connect_args}
     if not settings.database_dsn.startswith("sqlite"):
         options["pool_size"] = settings.database_pool_size
         options["max_overflow"] = settings.database_max_overflow
+    if settings.database_dsn == "sqlite://":
+        options["poolclass"] = StaticPool
     return create_engine(settings.database_dsn, **options)
 
 

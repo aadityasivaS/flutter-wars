@@ -60,3 +60,7 @@ def example():
 ```
 
 See [docs/module-a.md](docs/module-a.md) for integration boundaries.
+
+## Module C IDE synchronization
+
+Module C adds organizer-managed team API keys and `GET /ide/state`. The IDE must send `X-Team-API-Key`; this is a separate credential from participant JWTs. See [docs/module-c.md](docs/module-c.md) for endpoint details, integration boundaries, and the local fake-inventory test setup. Run its coverage with `uv run pytest tests/test_ide_sync.py`.
