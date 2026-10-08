@@ -32,8 +32,13 @@ docker start flutter-wars-postgres
 After PostgreSQL is running, apply the canonical Alembic migration chain:
 
 ```powershell
+$env:DATABASE_URL = "postgresql+psycopg://postgres:postgres@localhost:5432/flutter_wars"
 uv run alembic upgrade head
 ```
+
+Do not run the migration chain with `DATABASE_URL=sqlite://`; the deployment
+migrations target PostgreSQL. SQLite remains available only for the automated
+unit-test fixtures.
 
 To inspect or roll back the latest revision:
 
