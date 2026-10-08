@@ -13,7 +13,7 @@ class UserIdentity(SQLModel, table=True):
     __tablename__ = "user_identity"
 
     id: int | None = Field(default=None, primary_key=True)
-    google_subject: str = Field(index=True, unique=True, max_length=255)
+    google_subject: str | None = Field(default=None, index=True, unique=True, max_length=255)
     email: str = Field(index=True, max_length=320)
     created_at: datetime = Field(default_factory=_now)
 

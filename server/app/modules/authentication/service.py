@@ -14,10 +14,18 @@ class AuthenticationService:
         self.session = session
         self.settings = settings
 
-    def principal_for_google_subject(self, google_subject: str) -> Principal | None:
+    def principal_for_google_identity(self, google_subject: str, email: str) -> Principal | None:
         user = self.session.exec(
             select(UserIdentity).where(UserIdentity.google_subject == google_subject)
         ).first()
+        if user is None:
+            user = self.session.exec(
+                select(UserIdentity).where(UserIdentity.email == email.lower())
+            ).first()
+            if user is None or user.google_subject is not None:
+                return None
+            user.google_subject = google_subject
+            self.session.add(user)
         if user is None or user.id is None:
             return None
         membership = self.session.exec(

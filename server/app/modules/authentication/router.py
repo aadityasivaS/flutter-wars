@@ -34,7 +34,9 @@ def _issue_token(
     request: Request, session: Session, google_identity: dict[str, str]
 ) -> TokenResponse:
     service = AuthenticationService(session, request.app.state.settings)
-    principal = service.principal_for_google_subject(google_identity["google_subject"])
+    principal = service.principal_for_google_identity(
+        google_identity["google_subject"], google_identity["email"]
+    )
     if principal is None:
         raise AppError(
             "ACCOUNT_NOT_ALLOWED", "Google account is not registered for this workshop.", 403
