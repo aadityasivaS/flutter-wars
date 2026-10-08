@@ -4,9 +4,8 @@
 
 Module C owns `team_api_key`, API-key issuance/revocation, API-key authentication, and the read-only IDE sync API. It does not own teams, inventory, catalog records, credits, or participant authentication.
 
-The repository does not yet include a shared migration runner. Module C supplies
-`migrations/0001_module_c_team_api_key.sql`; Infrastructure must register it in
-that runner before deploying these endpoints.
+Module C's schema is revision `0001_module_c` in the Alembic migration chain.
+Run `uv run alembic upgrade head` before deploying these endpoints.
 
 ## API
 

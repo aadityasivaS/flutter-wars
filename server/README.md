@@ -29,6 +29,19 @@ docker stop flutter-wars-postgres
 docker start flutter-wars-postgres
 ```
 
+After PostgreSQL is running, apply the canonical Alembic migration chain:
+
+```powershell
+uv run alembic upgrade head
+```
+
+To inspect or roll back the latest revision:
+
+```powershell
+uv run alembic current
+uv run alembic downgrade -1
+```
+
 For deployment, set `DATABASE_URL` to the provider-supplied Cloudflare Hyperdrive route to Neon; no provider-specific adapter is hard-coded here.
 
 ## Run and test
@@ -37,9 +50,15 @@ For deployment, set `DATABASE_URL` to the provider-supplied Cloudflare Hyperdriv
 uv run uvicorn app.main:app --reload
 uv run pytest
 uv run ruff check .
+uv run alembic upgrade head
 ```
 
 `GET /health` returns `{"status":"ok"}` for process liveness. `GET /ready` verifies the configured database path and returns `{"status":"ready"}` or a safe `503` error.
+
+`JWT_SECRET_KEY` is required for Module B. Generate a unique high-entropy value
+for each environment. `GOOGLE_OAUTH_CLIENT_ID` must be set in production so
+Google ID tokens are verified for this backend's client ID. Run authentication
+and synchronization tests with `uv run pytest tests/test_authentication.py tests/test_ide_sync.py`.
 
 ## Structure
 
@@ -64,3 +83,7 @@ See [docs/module-a.md](docs/module-a.md) for integration boundaries.
 ## Module C IDE synchronization
 
 Module C adds organizer-managed team API keys and `GET /ide/state`. The IDE must send `X-Team-API-Key`; this is a separate credential from participant JWTs. See [docs/module-c.md](docs/module-c.md) for endpoint details, integration boundaries, and the local fake-inventory test setup. Run its coverage with `uv run pytest tests/test_ide_sync.py`.
+
+## Module B authentication
+
+`POST /auth/google` verifies a Google ID token, resolves the registered identity's current team membership, and issues a participant JWT. `GET /auth/me` requires `Authorization: Bearer <jwt>` and returns the current server-resolved principal. See [docs/module-b.md](docs/module-b.md).

@@ -15,3 +15,4 @@ class Principal(BaseModel):
     user_id: str = Field(min_length=1)
     team_id: str = Field(min_length=1)
     role: str = Field(min_length=1)
+    email: str | None = None

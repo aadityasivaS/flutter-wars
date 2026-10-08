@@ -9,7 +9,6 @@ from app.core.config import Settings
 from app.core.db import get_db
 from app.core.errors import AppError
 from app.core.logging import safe_context
-from app.core.principal import get_principal
 
 
 def test_application_registers_foundation_routes(app):
@@ -120,14 +119,8 @@ def test_principal_contract_and_auth_boundary():
         "team-6",
         "participant",
     )
-    try:
-        import asyncio
-
-        asyncio.run(get_principal())
-    except AppError as error:
-        assert error.code == "AUTHENTICATION_REQUIRED"
-    else:
-        raise AssertionError("Foundation must not authenticate a principal")
+    # Module B now implements the dependency; its missing-credential behavior
+    # is covered through the /auth/me endpoint and authentication tests.
 
 
 def test_configuration_requires_database_url_and_logging_redacts_secrets(monkeypatch):

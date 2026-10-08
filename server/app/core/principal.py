@@ -1,14 +1,27 @@
-"""Shared authentication boundary; credential verification belongs to Module B."""
+"""Shared JWT authentication dependency implemented by Module B."""
+
+from typing import Annotated
+
+from fastapi import Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlmodel import Session
 
 from app.contracts.principal import Principal
+from app.core.db import get_db
 from app.core.errors import AppError
+from app.modules.authentication.service import AuthenticationService
+
+_bearer_scheme = HTTPBearer(auto_error=False)
 
 
-async def get_principal() -> Principal:
-    """Dependency placeholder replaced/overridden by Module B after authentication.
-
-    Module B may register its verified-principal dependency with FastAPI's
-    dependency overrides or call sites can depend on its compatible provider.
-    No token decoding is intentionally performed here.
-    """
-    raise AppError("AUTHENTICATION_REQUIRED", "Authentication is required.", 401)
+def get_principal(
+    request: Request,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer_scheme)],
+    session: Annotated[Session, Depends(get_db)],
+) -> Principal:
+    """Verify a participant JWT and resolve current identity/team membership."""
+    if credentials is None:
+        raise AppError("AUTHENTICATION_REQUIRED", "Authentication is required.", 401)
+    return AuthenticationService(session, request.app.state.settings).principal_for_token(
+        credentials.credentials
+    )

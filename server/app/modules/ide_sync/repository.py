@@ -1,7 +1,6 @@
 """Database boundary for Module C credentials."""
 
-from sqlalchemy import select
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.modules.ide_sync.model import TeamApiKey
 

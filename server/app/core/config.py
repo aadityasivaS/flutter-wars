@@ -23,6 +23,14 @@ class Settings(BaseSettings):
     database_connect_timeout_seconds: int = Field(default=10, ge=1, le=120)
     database_pool_size: int = Field(default=5, ge=1, le=50)
     database_max_overflow: int = Field(default=10, ge=0, le=100)
+    jwt_secret_key: SecretStr = Field(validation_alias="JWT_SECRET_KEY")
+    jwt_algorithm: str = Field(default="HS256", validation_alias="JWT_ALGORITHM")
+    jwt_access_token_minutes: int = Field(
+        default=60, ge=1, le=1440, validation_alias="JWT_ACCESS_TOKEN_MINUTES"
+    )
+    google_oauth_client_id: str | None = Field(
+        default=None, validation_alias="GOOGLE_OAUTH_CLIENT_ID"
+    )
 
     @property
     def database_dsn(self) -> str:
