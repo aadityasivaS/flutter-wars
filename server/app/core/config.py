@@ -16,17 +16,19 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    app_name: str = "GDG Flutter Workshop Backend"
-    environment: str = "development"
-    log_level: str = "INFO"
+    app_name: str = Field(validation_alias="APP_NAME")
+    environment: str = Field(validation_alias="ENVIRONMENT")
+    log_level: str = Field(validation_alias="LOG_LEVEL")
     database_url: SecretStr = Field(validation_alias="DATABASE_URL")
-    database_connect_timeout_seconds: int = Field(default=10, ge=1, le=120)
-    database_pool_size: int = Field(default=5, ge=1, le=50)
-    database_max_overflow: int = Field(default=10, ge=0, le=100)
+    database_connect_timeout_seconds: int = Field(
+        validation_alias="DATABASE_CONNECT_TIMEOUT_SECONDS", ge=1, le=120
+    )
+    database_pool_size: int = Field(validation_alias="DATABASE_POOL_SIZE", ge=1, le=50)
+    database_max_overflow: int = Field(validation_alias="DATABASE_MAX_OVERFLOW", ge=0, le=100)
     jwt_secret_key: SecretStr = Field(validation_alias="JWT_SECRET_KEY")
-    jwt_algorithm: str = Field(default="HS256", validation_alias="JWT_ALGORITHM")
+    jwt_algorithm: str = Field(validation_alias="JWT_ALGORITHM")
     jwt_access_token_minutes: int = Field(
-        default=60, ge=1, le=1440, validation_alias="JWT_ACCESS_TOKEN_MINUTES"
+        validation_alias="JWT_ACCESS_TOKEN_MINUTES", ge=1, le=1440
     )
     google_oauth_client_id: str | None = Field(
         default=None, validation_alias="GOOGLE_OAUTH_CLIENT_ID"
