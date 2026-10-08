@@ -11,7 +11,25 @@ uv sync --all-groups
 Copy-Item .env.example .env
 ```
 
-Set `DATABASE_URL` in `.env`. For local development this can be a direct PostgreSQL/Neon SQLAlchemy URL. In deployment it should be the provider-supplied Cloudflare Hyperdrive route to Neon; no provider-specific adapter is hard-coded here.
+Set `DATABASE_URL` in `.env`. For local development, start PostgreSQL in Docker:
+
+```powershell
+docker run --name flutter-wars-postgres `
+  -e POSTGRES_USER=postgres `
+  -e POSTGRES_PASSWORD=postgres `
+  -e POSTGRES_DB=flutter_wars `
+  -p 5432:5432 `
+  -d postgres:18
+```
+
+The `.env.example` URL points to this container. Stop and restart it with:
+
+```powershell
+docker stop flutter-wars-postgres
+docker start flutter-wars-postgres
+```
+
+For deployment, set `DATABASE_URL` to the provider-supplied Cloudflare Hyperdrive route to Neon; no provider-specific adapter is hard-coded here.
 
 ## Run and test
 
